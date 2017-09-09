@@ -36,28 +36,28 @@ class Objects(object):
         self.set_objects()
 
     def set_objects(self):
-        self.objects = self.bucket.objects.all()
-        if self.objects:
-            self.keys = [o.key for o in self.objects]
+        objects = self.bucket.objects.all()
+        if objects:
+            self.keys = [o.key for o in objects]
             self.keys.sort()
+            self.objects = dict([(o.key, o) for o in objects])
 
-    def get(self, index):
+    def get(self, key):
+        try:
+            return self.objects[key]
+        except KeyError:
+            sublime.error_message('key ({}) not found in {}'.format(key, self.bucket.name))
+
+    def get_key(self, index):
         try:
             return self.keys[index]
         except IndexError:
-            panel = sublime.active_window().new_file()
-            panel.set_name("Error")
-            panel.set_scratch(True)
-            panel.run_command(
-                'append', {
-                    'characters': 'index ({}) not found in {}'.format(str(index), self.bucket.name)
-                }
-            )
+            sublime.error_message('index ({}) not found in {}'.format(str(index), self.bucket.name))
 
     def list(self):
         if self.keys:
             return self.keys
-        return ['{} does not have any objects'.format(self.bucket.name)]
+        sublime.error_message('{} does not have any objects'.format(self.bucket.name))
 
 
 class S3EditorCommand(sublime_plugin.WindowCommand):
@@ -80,16 +80,12 @@ class S3EditorCommand(sublime_plugin.WindowCommand):
         )
 
     def display(self, key_index):
-        key = self.objects.get(key_index)
-        status = [
-            'key_index: {}'.format(str(key_index)),
-            'key: {}'.format(key),
-            '',
-            '-' * 79,
-            ''
-        ]
+        key = self.objects.get_key(key_index)
+        obj = self.objects.get(key)
+        doc = obj.get()
+        content = doc['Body'].read()
 
         panel = sublime.active_window().new_file()
         panel.set_name(key)
         panel.set_scratch(True)
-        panel.run_command('append', {'characters': '\n'.join(status)})
+        panel.run_command('append', {'characters': content})
