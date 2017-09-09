@@ -7,15 +7,35 @@ import sublime_plugin
 class Buckets(object):
 
     def __init__(self):
-        s3 = boto3.client('s3')
-        self.buckets = jmespath.search('Buckets[*].Name', s3.list_buckets())
+        self.s3 = boto3.client('s3')
+        # TODO cache this list...
+        self.buckets = jmespath.search(
+            'Buckets[*].Name',
+            self.s3.list_buckets()
+        )
+        self.buckets.sort()
 
     def get(self, index):
-        return self.buckets.index(index)
+        return self.buckets[index]
 
     def list(self):
-        self.buckets.sort()
         return self.buckets
+
+
+class Objects(object):
+
+    def __init__(self, bucket):
+        # TODO cache this...
+        self.bucket = boto3.resource('s3').Bucket(bucket)
+        self.objects = self.bucket.objects.all()
+        self.keys = [o.key for o in self.objects]
+        self.keys.sort()
+
+    def get(self, index):
+        return self.buckets[index]
+
+    def list(self):
+        return self.keys
 
 
 class S3EditorCommand(sublime_plugin.TextCommand):
@@ -36,11 +56,14 @@ class ListBuckets(sublime_plugin.WindowCommand):
         return Buckets().list()
 
     def list_objects(self, thing):
+        bucket = Buckets().get(thing)
         status = [
-            'thing: {}'.format(str(thing))
-        ]
+            'thing: {}'.format(str(thing)),
+            'bucket: {}'.format(bucket),
+            ''
+        ] + Objects(bucket).list()
 
         panel = sublime.active_window().new_file()
-        panel.set_name("Foo")
+        panel.set_name("Objects")
         panel.set_scratch(True)
         panel.run_command('append', {'characters': '\n'.join(status)})
