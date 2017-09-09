@@ -4,6 +4,17 @@ import sublime
 import sublime_plugin
 
 
+class Buckets(object):
+
+    def __init__(self):
+        s3 = boto3.client('s3')
+        self.buckets = jmespath.search('Buckets[*].Name', s3.list_buckets())
+
+    def get(self):
+        self.buckets.sort()
+        return self.buckets
+
+
 def list_bucket_objects(thing):
     status = [
         'Running list_buckets_callback...',
@@ -35,13 +46,10 @@ class S3EditorCommand(sublime_plugin.TextCommand):
 class ListBuckets(sublime_plugin.WindowCommand):
 
     def run(self):
-        s3 = boto3.client('s3')
-        self.buckets = jmespath.search('Buckets[*].Name', s3.list_buckets())
         sublime.active_window().show_quick_panel(
             self.list(),
             list_bucket_objects
         )
 
     def list(self):
-        self.buckets.sort()
-        return self.buckets
+        return Buckets().get()
