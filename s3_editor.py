@@ -25,51 +25,71 @@ class Buckets(object):
 class Objects(object):
 
     def __init__(self, bucket):
+        self.objects = None
+        self.keys = None
+
+        self.resource = boto3.resource('s3')
+        self.client = boto3.client('s3')
+
         # TODO cache this...
-        self.bucket = boto3.resource('s3').Bucket(bucket)
+        self.bucket = self.resource.Bucket(bucket)
+        self.set_objects()
+
+    def set_objects(self):
         self.objects = self.bucket.objects.all()
-        self.keys = [o.key for o in self.objects]
-        self.keys.sort()
+        if self.objects:
+            self.keys = [o.key for o in self.objects]
+            self.keys.sort()
 
     def get(self, index):
-        return self.keys[index]
+        try:
+            return self.keys[index]
+        except IndexError:
+            panel = sublime.active_window().new_file()
+            panel.set_name("Error")
+            panel.set_scratch(True)
+            panel.run_command(
+                'append', {
+                    'characters': 'index ({}) not found in {}'.format(str(index), self.bucket.name)
+                }
+            )
 
     def list(self):
-        return self.keys
+        if self.keys:
+            return self.keys
+        return ['{} does not have any objects'.format(self.bucket.name)]
 
 
-class S3EditorCommand(sublime_plugin.TextCommand):
-
-    def run(self, edit):
-        sublime.status_message('Doing the S3 Editor Thing')
-
-
-class ListBuckets(sublime_plugin.WindowCommand):
+class S3EditorCommand(sublime_plugin.WindowCommand):
 
     def run(self):
+        self.buckets = Buckets()
         self.bucket = None
+
         sublime.active_window().show_quick_panel(
-            self.list(),
+            self.buckets.list(),
             self.list_objects
         )
 
-    def list(self):
-        return Buckets().list()
-
     def list_objects(self, bucket_index):
-        self.bucket = Buckets().get(bucket_index)
+        self.bucket = self.buckets.get(bucket_index)
+        self.objects = Objects(self.bucket)
         sublime.active_window().show_quick_panel(
-            Objects(self.bucket).list(),
+            self.objects.list(),
             self.display
         )
 
     def display(self, key_index):
-        key = Objects(self.bucket).get(key_index)
+        key = self.objects.get(key_index)
         status = [
             'key_index: {}'.format(str(key_index)),
-            'key: {}'.format(key)
+            'key: {}'.format(key),
+            '',
+            '-' * 79,
+            ''
         ]
+
         panel = sublime.active_window().new_file()
-        panel.set_name("S3 Key")
+        panel.set_name(key)
         panel.set_scratch(True)
         panel.run_command('append', {'characters': '\n'.join(status)})

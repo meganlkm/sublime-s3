@@ -12,10 +12,6 @@
                     {
                         "caption": "S3 Editor: Open File",
                         "command": "s3_editor"
-                    },
-                    {
-                        "caption": "S3 Editor: List Buckets",
-                        "command": "list_buckets"
                     }
                 ]
             }
