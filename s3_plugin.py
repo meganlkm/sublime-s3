@@ -36,6 +36,8 @@ class Session(object):
     def set_profile(self, profile_name):
         self.profile_name = profile_name
         self.session = boto3.session.Session(profile_name=profile_name)
+        self.client = self.session.client('s3')
+        self.resource = self.session.resource('s3')
 
     def profile_state(self):
         sublime.status_message('AWS Profile: {}'.format(self.profile_name))
@@ -66,11 +68,9 @@ class S3SelectedProfileCommand(sublime_plugin.WindowCommand):
 class Buckets(object):
 
     def __init__(self):
-        self.s3 = boto3.client('s3')
-        # TODO cache this list...
         self.buckets = jmespath.search(
             'Buckets[*].Name',
-            self.s3.list_buckets()
+            STATE.client.list_buckets()
         )
         self.buckets.sort()
 
@@ -87,11 +87,7 @@ class Objects(object):
         self.objects = None
         self.keys = None
 
-        self.resource = boto3.resource('s3')
-        self.client = boto3.client('s3')
-
-        # TODO cache this...
-        self.bucket = self.resource.Bucket(bucket)
+        self.bucket = STATE.resource.Bucket(bucket)
         self.set_objects()
 
     def set_objects(self):
