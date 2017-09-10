@@ -29,7 +29,7 @@ class Profile(object):
         return self.profiles
 
 
-class S3Profile(sublime_plugin.WindowCommand):
+class S3ProfileSelectorCommand(sublime_plugin.WindowCommand):
 
     def run(self):
         self.profile_obj = Profile()

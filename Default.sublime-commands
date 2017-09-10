@@ -1,10 +1,10 @@
 [
     {
-        "caption": "S3 Editor: Set Profile",
-        "command": "s3_profile"
+        "caption": "S3: Set Profile",
+        "command": "s3_profile_selector"
     },
     {
-        "caption": "S3 Editor: Open File",
+        "caption": "S3: Open File",
         "command": "s3_editor"
     }
 ]
