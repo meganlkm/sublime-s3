@@ -2,30 +2,47 @@
 
 A Plugin for doing things with files saved on AWS S3.
 
-## Commands
+* [Commands](#commands)
+* [TODO](#todo)
 
-### Set Profile
+---
+
+## <a name="commands"></a> Commands
+
+### Session
+
+#### Set Profile
+
+Default: `default`
 
 Select a profile defined in `~/.aws/credentials`.
 
-### Selected Profile
+#### Selected Profile
 
 Show the active profile in the status bar.
 
-### Set Bucket
+### Buckets
+
+#### Create Bucket
+
+Create a new bucket in the active profile.
+
+#### Set Bucket
 
 Select a bucket available in the profile.
 
-### Selected Bucket
+#### Selected Bucket
 
 Show the active bucket in the status bar.
 
-### Open File
+### Keys
+
+#### Open File
 
 Select and open a file that is uploaded to the selected bucket.
 
 
-## TODO
+## <a name="todo"></a> TODO
 
 * upload a file
 * download a file
