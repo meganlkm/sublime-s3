@@ -18,6 +18,10 @@
                         "command": "s3_selected_profile"
                     },
                     {
+                        "caption": "S3: Create Bucket",
+                        "command": "s3_create_bucket"
+                    },
+                    {
                         "caption": "S3: Set Bucket",
                         "command": "s3_bucket_selector"
                     },

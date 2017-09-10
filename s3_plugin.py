@@ -2,6 +2,7 @@ import boto3
 import jmespath
 import sublime
 import sublime_plugin
+from botocore.exceptions import ClientError
 
 
 class Session(object):
@@ -9,11 +10,12 @@ class Session(object):
     def __init__(self):
         self.bucket = None
         self.client = None
-        self.profile_name = None
+        self.profile_name = 'default'
         self.profiles = None
         self.resource = None
         self.session = boto3.session.Session()
         self.set_available_profiles()
+        self.set_profile(self.profile_name)
 
     def set_available_profiles(self):
         try:
@@ -132,6 +134,22 @@ class S3BucketSelectorCommand(sublime_plugin.WindowCommand):
     def set_bucket(self, bucket_index):
         STATE.set_bucket(self.buckets.get(bucket_index))
         STATE.bucket_state()
+
+
+class S3CreateBucketCommand(sublime_plugin.TextCommand):
+
+    def run(self, edit):
+        v = self.view
+        v.window().show_input_panel('Bucket Name', '', self.create_bucket, None, None)
+
+    def create_bucket(self, bucket_name):
+        try:
+            STATE.client.create_bucket(
+                Bucket=bucket_name
+            )
+            sublime.status_message('Bucket Created: {}'.format(bucket_name))
+        except ClientError as e:
+            sublime.error_message('Error: {}'.format(str(e)))
 
 
 class S3SelectedBucketCommand(sublime_plugin.WindowCommand):

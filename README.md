@@ -27,6 +27,7 @@ Select and open a file that is uploaded to the selected bucket.
 
 ## TODO
 
-☐ upload a file
-☐ download a file
-☐ escaping s3 key selection creates a new scratch file
+* upload a file
+* download a file
+* escaping s3 key selection creates a new scratch file
+* region selection
