@@ -4,6 +4,44 @@ import sublime
 import sublime_plugin
 
 
+class Profile(object):
+
+    def __init__(self):
+        self.profiles = None
+        self.session = boto3.session.Session()
+        self.set_available_profiles()
+
+    def set_available_profiles(self):
+        try:
+            self.profiles = self.session.available_profiles
+        except AttributeError:
+            try:
+                self.profiles = self.session._session.available_profiles
+            except AttributeError:
+                # no profiles?
+                self.profiles = []
+        self.profiles.sort()
+
+    def get(self, index):
+        return self.profiles[index]
+
+    def list(self):
+        return self.profiles
+
+
+class S3Profile(sublime_plugin.WindowCommand):
+
+    def run(self):
+        self.profile_obj = Profile()
+        sublime.active_window().show_quick_panel(
+            self.profile_obj.list(),
+            self.set_profile
+        )
+
+    def set_profile(self, index):
+        sublime.status_message('AWS profile set: {}'.format(self.profile_obj.get(index)))
+
+
 class Buckets(object):
 
     def __init__(self):
@@ -60,7 +98,7 @@ class Objects(object):
         sublime.error_message('{} does not have any objects'.format(self.bucket.name))
 
 
-class S3EditorCommand(sublime_plugin.WindowCommand):
+class S3Editor(sublime_plugin.WindowCommand):
 
     def run(self):
         self.buckets = Buckets()

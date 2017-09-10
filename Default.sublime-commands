@@ -1,5 +1,9 @@
 [
     {
+        "caption": "S3 Editor: Set Profile",
+        "command": "s3_profile"
+    },
+    {
         "caption": "S3 Editor: Open File",
         "command": "s3_editor"
     }
