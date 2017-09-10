@@ -1,3 +1,3 @@
 [
-    { "keys": ["alt+3"], "command": "s3_editor" }
+    { "keys": ["alt+3"], "command": "s3_open_file" }
 ]

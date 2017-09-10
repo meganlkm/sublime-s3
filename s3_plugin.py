@@ -4,20 +4,15 @@ import sublime
 import sublime_plugin
 
 
-class State(object):
+class Session(object):
 
     def __init__(self):
-        self.profile = None
         self.bucket = None
-
-
-STATE = State()
-
-
-class Profile(object):
-
-    def __init__(self):
+        self.client = None
+        self.profile_name = None
         self.profiles = None
+        self.resource = None
+
         self.session = boto3.session.Session()
         self.set_available_profiles()
 
@@ -32,31 +27,40 @@ class Profile(object):
                 self.profiles = []
         self.profiles.sort()
 
-    def get(self, index):
+    def get_profile(self, index):
         return self.profiles[index]
 
-    def list(self):
+    def list_profiles(self):
         return self.profiles
+
+    def set_profile(self, profile_name):
+        self.profile_name = profile_name
+        self.session = boto3.session.Session(profile_name=profile_name)
+
+    def profile_state(self):
+        sublime.status_message('AWS Profile: {}'.format(self.profile_name))
+
+
+STATE = Session()
 
 
 class S3ProfileSelectorCommand(sublime_plugin.WindowCommand):
 
     def run(self):
-        self.profile_obj = Profile()
         sublime.active_window().show_quick_panel(
-            self.profile_obj.list(),
+            STATE.list_profiles(),
             self.set_profile
         )
 
     def set_profile(self, index):
-        STATE.profile = self.profile_obj.get(index)
-        sublime.status_message('AWS profile set: {}'.format(STATE.profile))
+        STATE.set_profile(STATE.get_profile(index))
+        STATE.profile_state()
 
 
 class S3SelectedProfileCommand(sublime_plugin.WindowCommand):
 
     def run(self):
-        sublime.status_message('AWS profile: {}'.format(STATE.profile))
+        STATE.profile_state()
 
 
 class Buckets(object):
@@ -115,7 +119,7 @@ class Objects(object):
         sublime.error_message('{} does not have any objects'.format(self.bucket.name))
 
 
-class S3Editor(sublime_plugin.WindowCommand):
+class S3OpenFileCommand(sublime_plugin.WindowCommand):
 
     def run(self):
         self.buckets = Buckets()

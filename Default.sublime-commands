@@ -9,6 +9,6 @@
     },
     {
         "caption": "S3: Open File",
-        "command": "s3_editor"
+        "command": "s3_open_file"
     }
 ]
