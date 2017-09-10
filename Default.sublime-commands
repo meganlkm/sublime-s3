@@ -8,6 +8,14 @@
         "command": "s3_selected_profile"
     },
     {
+        "caption": "S3: Set Bucket",
+        "command": "s3_bucket_selector"
+    },
+    {
+        "caption": "S3: Selected Bucket",
+        "command": "s3_selected_bucket"
+    },
+    {
         "caption": "S3: Open File",
         "command": "s3_open_file"
     }

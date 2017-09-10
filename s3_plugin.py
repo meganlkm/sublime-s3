@@ -12,7 +12,6 @@ class Session(object):
         self.profile_name = None
         self.profiles = None
         self.resource = None
-
         self.session = boto3.session.Session()
         self.set_available_profiles()
 
@@ -42,27 +41,11 @@ class Session(object):
     def profile_state(self):
         sublime.status_message('AWS Profile: {}'.format(self.profile_name))
 
+    def set_bucket(self, bucket_name):
+        self.bucket = bucket_name
 
-STATE = Session()
-
-
-class S3ProfileSelectorCommand(sublime_plugin.WindowCommand):
-
-    def run(self):
-        sublime.active_window().show_quick_panel(
-            STATE.list_profiles(),
-            self.set_profile
-        )
-
-    def set_profile(self, index):
-        STATE.set_profile(STATE.get_profile(index))
-        STATE.profile_state()
-
-
-class S3SelectedProfileCommand(sublime_plugin.WindowCommand):
-
-    def run(self):
-        STATE.profile_state()
+    def bucket_state(self):
+        sublime.status_message('AWS Selected Bucket: {}'.format(self.bucket))
 
 
 class Buckets(object):
@@ -115,20 +98,52 @@ class Objects(object):
         sublime.error_message('{} does not have any objects'.format(self.bucket.name))
 
 
-class S3OpenFileCommand(sublime_plugin.WindowCommand):
+STATE = Session()
+
+
+class S3ProfileSelectorCommand(sublime_plugin.WindowCommand):
+
+    def run(self):
+        sublime.active_window().show_quick_panel(
+            STATE.list_profiles(),
+            self.set_profile
+        )
+
+    def set_profile(self, index):
+        STATE.set_profile(STATE.get_profile(index))
+        STATE.profile_state()
+
+
+class S3SelectedProfileCommand(sublime_plugin.WindowCommand):
+
+    def run(self):
+        STATE.profile_state()
+
+
+class S3BucketSelectorCommand(sublime_plugin.WindowCommand):
 
     def run(self):
         self.buckets = Buckets()
-        self.bucket = None
-
         sublime.active_window().show_quick_panel(
             self.buckets.list(),
-            self.list_objects
+            self.set_bucket
         )
 
-    def list_objects(self, bucket_index):
-        self.bucket = self.buckets.get(bucket_index)
-        self.objects = Objects(self.bucket)
+    def set_bucket(self, bucket_index):
+        STATE.set_bucket(self.buckets.get(bucket_index))
+        STATE.bucket_state()
+
+
+class S3SelectedBucketCommand(sublime_plugin.WindowCommand):
+
+    def run(self):
+        STATE.bucket_state()
+
+
+class S3OpenFileCommand(sublime_plugin.WindowCommand):
+
+    def run(self):
+        self.objects = Objects(STATE.bucket)
         sublime.active_window().show_quick_panel(
             self.objects.list(),
             self.display
