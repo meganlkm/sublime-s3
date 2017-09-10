@@ -4,6 +4,16 @@ import sublime
 import sublime_plugin
 
 
+class State(object):
+
+    def __init__(self):
+        self.profile = None
+        self.bucket = None
+
+
+STATE = State()
+
+
 class Profile(object):
 
     def __init__(self):
@@ -39,7 +49,14 @@ class S3ProfileSelectorCommand(sublime_plugin.WindowCommand):
         )
 
     def set_profile(self, index):
-        sublime.status_message('AWS profile set: {}'.format(self.profile_obj.get(index)))
+        STATE.profile = self.profile_obj.get(index)
+        sublime.status_message('AWS profile set: {}'.format(STATE.profile))
+
+
+class S3SelectedProfileCommand(sublime_plugin.WindowCommand):
+
+    def run(self):
+        sublime.status_message('AWS profile: {}'.format(STATE.profile))
 
 
 class Buckets(object):
