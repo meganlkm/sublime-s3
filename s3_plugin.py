@@ -50,6 +50,9 @@ class Session(object):
         sublime.status_message('AWS Selected Bucket: {}'.format(self.bucket))
 
 
+STATE = Session()
+
+
 class Buckets(object):
 
     def __init__(self):
@@ -98,9 +101,6 @@ class Objects(object):
         if self.keys:
             return self.keys
         sublime.error_message('{} does not have any objects'.format(self.bucket.name))
-
-
-STATE = Session()
 
 
 class S3ProfileSelectorCommand(sublime_plugin.WindowCommand):
@@ -171,7 +171,7 @@ class S3OpenFileCommand(sublime_plugin.WindowCommand):
         key = self.objects.get_key(key_index)
         obj = self.objects.get(key)
         doc = obj.get()
-        content = doc['Body'].read()
+        content = doc['Body'].read().decode("utf-8")
 
         panel = sublime.active_window().new_file()
         panel.set_name(key)
