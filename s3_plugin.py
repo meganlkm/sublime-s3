@@ -12,10 +12,17 @@ class Session(object):
         self.client = None
         self.profile_name = 'default'
         self.profiles = None
+        self.region_name = None
+        self.regions = None
         self.resource = None
-        self.session = boto3.session.Session()
-        self.set_available_profiles()
+        self.session = None
         self.set_profile(self.profile_name)
+
+    def __set_session(self):
+        kwargs = {'profile_name': self.profile_name}
+        if self.region_name:
+            kwargs['region_name'] = self.region_name
+        self.session = boto3.session.Session(**kwargs)
 
     def set_available_profiles(self):
         try:
@@ -28,20 +35,40 @@ class Session(object):
                 self.profiles = []
         self.profiles.sort()
 
+    def set_available_regions(self):
+        self.regions = self.session.get_available_regions('s3')
+        self.regions.sort()
+
     def get_profile(self, index):
         return self.profiles[index]
 
     def list_profiles(self):
         return self.profiles
 
-    def set_profile(self, profile_name):
+    def set_profile(self, profile_name, region_name=None):
         self.profile_name = profile_name
-        self.session = boto3.session.Session(profile_name=profile_name)
+        self.region_name = region_name
+        self.__set_session()
         self.client = self.session.client('s3')
         self.resource = self.session.resource('s3')
+        if not self.profiles:
+            self.set_available_profiles()
+        if not self.regions:
+            self.set_available_regions()
+        if not self.region_name:
+            self.region_name = self.session.region_name
 
     def profile_state(self):
         sublime.status_message('AWS Profile: {}'.format(self.profile_name))
+
+    def list_regions(self):
+        return self.regions
+
+    def get_region(self, index):
+        return self.regions[index]
+
+    def show_region(self):
+        sublime.status_message('AWS Region: {}'.format(self.region_name))
 
     def set_bucket(self, bucket_name):
         self.bucket = bucket_name
@@ -120,6 +147,25 @@ class S3SelectedProfileCommand(sublime_plugin.WindowCommand):
 
     def run(self):
         STATE.profile_state()
+
+
+class S3RegionSelectorCommand(sublime_plugin.WindowCommand):
+
+    def run(self):
+        sublime.active_window().show_quick_panel(
+            STATE.list_regions(),
+            self.set_region
+        )
+
+    def set_region(self, index):
+        STATE.set_profile(STATE.profile_name, STATE.get_region(index))
+        STATE.show_region()
+
+
+class S3SelectedRegionCommand(sublime_plugin.WindowCommand):
+
+    def run(self):
+        STATE.show_region()
 
 
 class S3BucketSelectorCommand(sublime_plugin.WindowCommand):

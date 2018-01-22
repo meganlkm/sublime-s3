@@ -8,6 +8,14 @@
         "command": "s3_selected_profile"
     },
     {
+        "caption": "S3: Set Region",
+        "command": "s3_region_selector"
+    },
+    {
+        "caption": "S3: Selected Region",
+        "command": "s3_selected_region"
+    },
+    {
         "caption": "S3: Create Bucket",
         "command": "s3_create_bucket"
     },
@@ -22,5 +30,9 @@
     {
         "caption": "S3: Open File",
         "command": "s3_open_file"
+    },
+    {
+        "caption": "S3: Cmd Test",
+        "command": "s3_cmd_test"
     }
 ]
