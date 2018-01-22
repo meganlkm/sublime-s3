@@ -21,6 +21,14 @@ Select a profile defined in `~/.aws/credentials`.
 
 Show the active profile in the status bar.
 
+#### Set Region
+
+Select a region available for the s3 client/resource
+
+#### Selected Region
+
+Show the active region in the status bar.
+
 ### Buckets
 
 #### Create Bucket
@@ -47,4 +55,3 @@ Select and open a file that is uploaded to the selected bucket.
 * upload a file
 * download a file
 * escaping s3 key selection creates a new scratch file
-* region selection
