@@ -32,7 +32,7 @@
         "command": "s3_open_file"
     },
     {
-        "caption": "S3: Cmd Test",
-        "command": "s3_cmd_test"
+        "caption": "S3: Upload File",
+        "command": "s3_upload_file"
     }
 ]

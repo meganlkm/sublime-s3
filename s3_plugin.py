@@ -24,7 +24,7 @@ class Session(object):
             kwargs['region_name'] = self.region_name
         self.session = boto3.session.Session(**kwargs)
 
-    def set_available_profiles(self):
+    def __set_available_profiles(self):
         try:
             self.profiles = self.session.available_profiles
         except AttributeError:
@@ -35,7 +35,7 @@ class Session(object):
                 self.profiles = []
         self.profiles.sort()
 
-    def set_available_regions(self):
+    def __set_available_regions(self):
         self.regions = self.session.get_available_regions('s3')
         self.regions.sort()
 
@@ -52,9 +52,9 @@ class Session(object):
         self.client = self.session.client('s3')
         self.resource = self.session.resource('s3')
         if not self.profiles:
-            self.set_available_profiles()
+            self.__set_available_profiles()
         if not self.regions:
-            self.set_available_regions()
+            self.__set_available_regions()
         if not self.region_name:
             self.region_name = self.session.region_name
 
@@ -102,6 +102,7 @@ class Objects(object):
         self.objects = None
         self.keys = None
 
+        self.bucket_name = bucket
         self.bucket = STATE.resource.Bucket(bucket)
         self.set_objects()
 
@@ -128,6 +129,10 @@ class Objects(object):
         if self.keys:
             return self.keys
         sublime.error_message('{} does not have any objects'.format(self.bucket.name))
+
+    def upload(self, filename, key):
+        STATE.resource.Object(self.bucket_name, key).upload_file(filename)
+        sublime.status_message('AWS Uploaded File: s3://{}/{}'.format(self.bucket, key))
 
 
 class S3ProfileSelectorCommand(sublime_plugin.WindowCommand):
@@ -190,9 +195,7 @@ class S3CreateBucketCommand(sublime_plugin.TextCommand):
 
     def create_bucket(self, bucket_name):
         try:
-            STATE.client.create_bucket(
-                Bucket=bucket_name
-            )
+            STATE.client.create_bucket(Bucket=bucket_name)
             sublime.status_message('Bucket Created: {}'.format(bucket_name))
         except ClientError as e:
             sublime.error_message('Error: {}'.format(str(e)))
@@ -223,3 +226,11 @@ class S3OpenFileCommand(sublime_plugin.WindowCommand):
         panel.set_name(key)
         panel.set_scratch(True)
         panel.run_command('append', {'characters': content})
+
+
+class S3UploadFileCommand(sublime_plugin.TextCommand):
+
+    def run(self, edit):
+        self.objects = Objects(STATE.bucket)
+        win_vars = self.view.window().extract_variables()
+        self.objects.upload(win_vars.get('file'), win_vars.get('file_name'))
